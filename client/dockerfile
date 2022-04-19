@@ -1,0 +1,11 @@
+FROM node:14.17.5
+RUN npm config set strict-ssl false
+RUN npm install -g http-server
+WORKDIR /client
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+RUN npm config set strict-ssl true
+EXPOSE 8080
+CMD [ "http-server", "dist" ]
