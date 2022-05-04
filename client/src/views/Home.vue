@@ -16,6 +16,12 @@
         @click="$router.push('orgTypeNumber')"
         >Отчет по количеству организаций в типах</b-button
       >
+      <b-button
+        variant="dark"
+        class="btns"
+        @click="$router.push('solutionsCoef')"
+        >Посчитать КИД</b-button
+      >
     </div>
   </div>
 </template>

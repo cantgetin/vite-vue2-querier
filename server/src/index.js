@@ -8,6 +8,7 @@ app.use(express.json());
 app.use(cors());
 
 app.get('/outEcp', db.outEcp)
+app.get('/solutionsCoef', db.solutionsCoef)
 app.get('/orgTypeNumber', db.orgTypeNumber)
 app.get('/orgTypes', db.orgTypes)
 app.get('/', (request, response) => {

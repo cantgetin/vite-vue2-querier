@@ -9,6 +9,7 @@ const getDefaultState = () => {
     outEcpData: [],
     orgTypeNumber: [],
     orgTypes: [],
+    soltuionsCoef: [],
     status: 'empty'
     }
 }
@@ -22,7 +23,37 @@ const mutations = {
   setOutEcpData: (state, data) => (state.outEcpData = data),
   setOrgTypeNumber: (state, data) => (state.orgTypeNumber = data),
   setOrgTypes: (state, data) => (state.orgTypes = data),
+  setSolutionsCoef: (state, data) => (state.soltuionsCoef = data),
 };
+
+function calculateResultWithArg(
+  coef,
+  number_of_good_solutions,
+  bad_solutions,
+  day_overdue
+) {
+  var bad_solutions_calculated_score_sum = 0;
+  var bad_solutions_number = 0;
+
+  // высчитываем N * (0.5)^d для каждой строки
+  // N - кол-во просроченных поручений, d - кол-во дней на сколько просрочили N поручений
+  for (let i = 0; i < bad_solutions.length; i++) {
+    var N = bad_solutions[i];
+    var d = day_overdue[i];
+
+    var row_score = N * Math.pow(0.5, d); // посчитали N * (0.5)^day
+
+    bad_solutions_calculated_score_sum =
+      +bad_solutions_calculated_score_sum + +row_score; // считаем сумму всех скоров
+    bad_solutions_number = +bad_solutions_number + +N; // считаем кол-во просроченных поручений
+  }
+
+  var top = +number_of_good_solutions + +bad_solutions_calculated_score_sum; //числитель формулы
+
+  var bot = +bad_solutions_number + +number_of_good_solutions; // знаменатель формулы
+
+  return Math.pow(top / bot, coef).toFixed(2);
+}
 
 const actions = {
   async getOutEcp({ commit }, from, to) {
@@ -45,6 +76,16 @@ const actions = {
     // console.log(response)
     commit("setOrgTypes", response.data);
   },
+  async getSolutionsCoef({ commit }) {
+    const response = await querriesApi.getSolutionsCoef();
+    response.data.forEach(
+      (element) =>
+        (element.KID = calculateResultWithArg(element.coefficient,element.goodsolutionscount,
+          element.badsolutionnumbers, element.badsolutiondaysoverdue)
+        ));
+    await commit("setSolutionsCoef", response.data);
+    //console.log(response);
+  },
 
   resetState ({commit}){
     commit('resetState')
@@ -55,6 +96,7 @@ const getters = {
   outEcpData: () => state.outEcpData,
   orgTypeNumber: () => state.orgTypeNumber,
   orgTypes: () => state.orgTypes,
+  solutionsCoefGetter: () => state.soltuionsCoef,
 };
 
 export default {

@@ -24,7 +24,12 @@ const routes = [
     path: '/orgTypes',
     name: 'orgTypes',
     component: () => import('../views/orgTypes.vue')
-  }
+  },
+  {
+    path: '/solutionsCoef',
+    name: 'solutionsCoef',
+    component: () => import('../views/solutionsCoef.vue')
+  },
 ]
 
 const router = new VueRouter({

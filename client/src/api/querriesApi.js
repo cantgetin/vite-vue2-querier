@@ -9,7 +9,10 @@ export default {
     },
     getOrgTypes() {
         return api().get(`orgTypes`)
-    }
+    },
+    getSolutionsCoef() {
+        return api().get(`solutionsCoef`)
+    },
 }
 
 

@@ -1,5 +1,6 @@
 const { Pool } = require('pg')
-const connectionString = 'postgresql://postgres:postgres@10.0.23.118:5432/tezis'
+//const connectionString = 'postgresql://postgres:postgres@10.0.23.118:5432/tezis'
+const connectionString = 'postgres://postgres:1488q1337@localhost:5432/testdb';
 var pool = new Pool({connectionString});
 
 
@@ -35,13 +36,69 @@ const orgTypes = (request, response) => {
          })
        }
 
+const solutionsCoef = (request, response) => {
+        pool.query(
+          solutionsCoefQuery, (error, results) => {
+            if (error) {
+              throw error
+            }
+            response.status(200).json(results.rows)
+          })
+        }
+        
+
 module.exports = {
   outEcp,
   orgTypeNumber,
-  orgTypes
+  orgTypes,
+  solutionsCoef
 }
 
+const solutionsCoefQuery = `
+SELECT 
+coalesce(t1.executor_id,t2.executor_id) as executor_id,
+coalesce(t1.coefficient,t2."coef") as coefficient, 
+t1."goodSolutionsCount" as goodSolutionsCount, 
+array_agg(t2."badSolutionsCount") as badSolutionNumbers, 
+array_agg(t2."daysOverdue") as badSolutionDaysOverdue,
+0 as KID
 
+FROM (
+SELECT 
+executor_id,
+coefficient,
+COUNT(executor_id) as "goodSolutionsCount"
+FROM TM_TASK
+WHERE
+DATE_PART('day', finish_date_fact::date) - 
+DATE_PART('day', finish_datetime_plan::date) < 0
+and
+date_trunc('month', start_datetime_fact)> date_trunc('month', current_date - interval '5 month')
+ 
+GROUP BY executor_id, coefficient
+ORDER BY executor_id) t1
+FULL JOIN 
+(
+SELECT 
+executor_id,
+coefficient as coef,
+CAST (COUNT(executor_id) as SMALLINT) as "badSolutionsCount", 
+CAST (DATE_PART('day', coalesce(finish_date_fact, NOW())::date) - 
+DATE_PART('day', finish_datetime_plan::date)  as SMALLINT)
+as "daysOverdue"
+FROM TM_TASK
+WHERE
+DATE_PART('day', coalesce(finish_date_fact, NOW())::date) - 
+DATE_PART('day', finish_datetime_plan::date) > 0 
+and
+date_trunc('month', start_datetime_fact)> date_trunc('month', current_date - interval '5 month')
+
+GROUP BY executor_id, coef,  "daysOverdue"
+ORDER BY executor_id) t2
+ON t1.executor_id = t2.executor_id and t1.coefficient = t2."coef"
+GROUP BY t1.executor_id,t2.executor_id, t1.coefficient, t2."coef", t1."goodSolutionsCount"
+ORDER BY coalesce(t1.executor_id,t2.executor_id)
+`
 
 
 
