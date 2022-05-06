@@ -56,6 +56,29 @@ module.exports = {
 
 const solutionsCoefQuery = `
 SELECT 
+executor_id,
+1 as coef1,
+max(case when coefficient = 1 then goodsolutionscount end) good_solutions_number_coef1 ,
+max(case when coefficient = 1 then badsolutionnumbers end) bad_solutions_numbers_coef1,
+max(case when coefficient = 1 then badsolutiondaysoverdue end) bad_solutions_days_overdue_coef1,
+max(case when coefficient = 1 then kid end) KID_coef1,
+
+2 as coef2,
+max(case when coefficient = 2 then goodsolutionscount end) good_solutions_number_coef2 ,
+max(case when coefficient = 2 then badsolutionnumbers end) bad_solutions_numbers_coef2,
+max(case when coefficient = 2 then badsolutiondaysoverdue end) bad_solutions_days_overdue_coef2,
+max(case when coefficient = 2 then kid end) KID_coef2,
+
+3 as coef3,
+max(case when coefficient = 3 then goodsolutionscount end) good_solutions_number_coef3 ,
+max(case when coefficient = 3 then badsolutionnumbers end) bad_solutions_numbers_coef3,
+max(case when coefficient = 3 then badsolutiondaysoverdue end) bad_solutions_days_overdue_coef3,
+max(case when coefficient = 3 then kid end) KID_coef3,
+
+0 as KID_FINAL
+
+FROM ( 
+SELECT 
 coalesce(t1.executor_id,t2.executor_id) as executor_id,
 coalesce(t1.coefficient,t2."coef") as coefficient, 
 t1."goodSolutionsCount" as goodSolutionsCount, 
@@ -97,9 +120,10 @@ GROUP BY executor_id, coef,  "daysOverdue"
 ORDER BY executor_id) t2
 ON t1.executor_id = t2.executor_id and t1.coefficient = t2."coef"
 GROUP BY t1.executor_id,t2.executor_id, t1.coefficient, t2."coef", t1."goodSolutionsCount"
-ORDER BY coalesce(t1.executor_id,t2.executor_id)
-`
+ORDER BY coalesce(t1.executor_id,t2.executor_id)) t1
 
+GROUP BY executor_id
+`
 
 
 const outEcpQuery = `

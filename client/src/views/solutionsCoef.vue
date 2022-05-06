@@ -39,19 +39,16 @@ export default {
           key: "executor_id",
         },
         {
-          key: "coefficient",
+          key: "KID_coef1",
         },
         {
-          key: "goodsolutionscount",
+          key: "KID_coef2",
         },
         {
-          key: "badsolutionnumbers",
+          key: "KID_coef3",
         },
         {
-          key: "badsolutiondaysoverdue",
-        },
-        {
-          key: "KID",
+          key: "KID_FINAL",
         },
       ]
     };
