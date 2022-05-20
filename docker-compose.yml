@@ -8,19 +8,19 @@ services:
     ports:
       - "3080:3080"
     container_name: express
-    volumes:
-       - ./server:/server/
-       - /server/node_modules
+    # volumes:
+    #    - ./server:/server/
+    #    - /server/node_modules
   querier-ui:
     depends_on:
       - querier-server
-    image: git-ogbu-reg.gov74.ru/vue
+    image: git-ogbu-reg.gov74.ru/client-tag
     build:
       context: ./client
       dockerfile: dockerfile
     ports:
       - "8080:8080"
     container_name: vue
-    volumes:
-       - ./client:/client
-       - /client/node_modules
+    # volumes:
+    #    - ./client:/client
+    #    - /client/node_modules

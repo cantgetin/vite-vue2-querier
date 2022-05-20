@@ -1,8 +1,8 @@
 <template>
-  <div>
-  <div class="divHead">
-    <b-button class="btn-back" variant="dark" @click="$router.push('/')">Назад</b-button>
-    <h2>Отчет по типам организаций</h2>
+  <div class="base">
+    <div class="divHead">
+      <h2>Отчет по типам организаций</h2>
+      <hr />
     </div>
     <b-table
       class="table tb shadow p-3 mb-5 bg-white rounded"
@@ -10,10 +10,10 @@
       label-sort-clear="Кликните, чтобы отменить сортировку"
       label-sort-asc=""
       label-sort-desc=""
-     :items="orgTypes"
-     :fields="tableFields"
-     :sort-by="sortBy"
-     :sort-desc="sortDesc"
+      :items="orgTypes"
+      :fields="tableFields"
+      :sort-by="sortBy"
+      :sort-desc="sortDesc"
     >
     </b-table>
   </div>
@@ -23,18 +23,18 @@
 import { mapGetters, mapActions } from "vuex";
 export default {
   mounted() {
-      this.getOrgTypes()
-    },
-    computed: {
-        ...mapGetters(["orgTypes"]),
-      },
-    methods: {
-        ...mapActions(["getOrgTypes"]),
-      },
+    this.getOrgTypes();
+  },
+  computed: {
+    ...mapGetters(["orgTypes"]),
+  },
+  methods: {
+    ...mapActions(["getOrgTypes"]),
+  },
   data() {
     return {
-        sortBy: 'case',
-        sortDesc: true,
+      sortBy: "case",
+      sortDesc: true,
       tableFields: [
         {
           key: "name",
@@ -45,7 +45,7 @@ export default {
           label: "Тип организации",
           class: "tableNumbers",
           sortable: true,
-          sortDirection: "last"
+          sortDirection: "last",
         },
       ],
     };
@@ -60,11 +60,10 @@ export default {
   width: 60vw;
   margin: auto;
 }
-.divHead{
-  margin-top: 1vh;
+.divHead {
+  /* margin-top: 1vh;
   margin-bottom: 1vh;
   display: flex;
-  gap: 2vw;
-  margin-left: 30vw;
+  gap: 2vw; */
 }
 </style>

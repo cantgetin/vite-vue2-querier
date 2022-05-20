@@ -1,49 +1,164 @@
-const { Pool } = require('pg')
-const connectionString = 'postgresql://postgres:postgres@10.0.23.118:5432/tezis'
-var pool = new Pool({connectionString});
-
+const { Pool } = require("pg");
+const connectionString =
+  "postgresql://postgres:postgres@10.0.23.118:5432/tezis";
+var pool = new Pool({ connectionString });
 
 const outEcp = (request, response) => {
-  let from = request.query.dateValueFrom
-  let to = request.query.dateValueTo
+  let from = request.query.dateValueFrom;
+  let to = request.query.dateValueTo;
   // console.log(request.query)
-    pool.query(
-      outEcpQuery, [from, to], (error, results) => {
-       if (error) {
-         throw error
-       }
-       response.status(200).json(results.rows)
-     })
-   }
+  pool.query(outEcpQuery, [from, to], (error, results) => {
+    if (error) {
+      throw error;
+    }
+    response.status(200).json(results.rows);
+  });
+};
 const orgTypeNumber = (request, response) => {
-      pool.query(
-        orgTypeCount, (error, results) => {
-         if (error) {
-           throw error
-         }
-         response.status(200).json(results.rows)
-       })
-     }
+  pool.query(orgTypeCount, (error, results) => {
+    if (error) {
+      throw error;
+    }
+    response.status(200).json(results.rows);
+  });
+};
 
 const orgTypes = (request, response) => {
-        pool.query(
-          orgType, (error, results) => {
-           if (error) {
-             throw error
-           }
-           response.status(200).json(results.rows)
-         })
-       }
+  pool.query(orgType, (error, results) => {
+    if (error) {
+      throw error;
+    }
+    response.status(200).json(results.rows);
+  });
+};
+
+const solutionsCoef = (request, response) => {
+  pool.query(solutionsCoefQuery, (error, results) => {
+    if (error) {
+      throw error;
+    }
+    response.status(200).json(results.rows);
+  });
+};
+
+const solutionsFinalCoef = (request, response) => {
+  pool.query(finalKid, (error, results) => {
+    if (error) {
+      throw error;
+    }
+    response.status(200).json(results.rows);
+  });
+};
 
 module.exports = {
   outEcp,
   orgTypeNumber,
-  orgTypes
-}
+  orgTypes,
+  solutionsCoef,
+  solutionsFinalCoef,
+};
+
+const finalKid = `
+
+SELECT name, sum(kidf.quantity) AS quantity, sum(kidf.good) AS good,sum(kidf.bad) AS bad,  sum(kidf.unfinished) AS unfinished
+FROM
+(SELECT temp.name, sum(temp.quantity) AS quantity, temp.coefficient, SUM(temp.good) as good, SUM(TEMP.bad) AS bad, jsonb_agg(temp."bad/daysoverdue") filter (where temp."bad/daysoverdue" is not null) as "bad/daysoverdue", sum(temp.unfinished) AS unfinished
+FROM
+(SELECT
+	su.name,
+	COUNT(tt.card_id) quantity,
+	
+	(CASE
+		WHEN gtk.name = 'Главный федеральный инспектор в Челябинской области' THEN 1
+		WHEN gtk.name = 'Запрос Депутата Государственной Думы' THEN 1
+		WHEN gtk.name = 'Министерства и др.' THEN 1
+		WHEN gtk.name = 'Полномочный представитель Президента РФ в УрФО' THEN 2
+		WHEN gtk.name = 'Аппарат Правительства РФ' THEN 3
+		WHEN gtk.name = 'Администрация Президента РФ' THEN 3
+		WHEN gtk.name = 'Поручения Президента РФ' THEN 3
+		WHEN gtk.name = 'Председатель Правительства РФ' THEN 3
+		WHEN gtk.name = 'Проверки УрФО' THEN 1
+		WHEN gtk.name = 'Протоколы УрФО' THEN 1
+		WHEN gtk.name = 'Указы Президента РФ' THEN 3
+    WHEN gtk.name = 'Поручения Губернатора' THEN 1
+		WHEN gtk.name = 'Поручения Губернатора с коэфф. 3' THEN 3
+		WHEN gtk.name IS NULL THEN 1
+	END) coefficient,
+
+(SUM (CASE WHEN (CAST (DATE_PART('day', COALESCE(finish_datetime_fact, NOW())) - DATE_PART('day', finish_datetime_plan::DATE)AS INT)) < 0 THEN 1 END)) good,
+(SUM (CASE WHEN (CAST (DATE_PART('day', finish_datetime_fact) - DATE_PART('day', finish_datetime_plan::DATE)AS INT)) > 0 THEN 1 END)) bad,
+
+(CASE WHEN (SUM (CASE WHEN (CAST (DATE_PART('day', finish_datetime_fact) - DATE_PART('day', finish_datetime_plan::DATE)AS INT)) > 0 THEN 1 END)) IS NOT NULL THEN 
+CONCAT_WS('/',(SUM (CASE WHEN (CAST (DATE_PART('day', finish_datetime_fact) - DATE_PART('day', finish_datetime_plan::DATE)AS INT)) > 0 THEN 1 END)), 
+(CAST (DATE_PART('day', COALESCE(finish_datetime_fact, NOW())::date) - DATE_PART('day', finish_datetime_plan::date)  as SMALLINT))) END) as "bad/daysoverdue",
+
+(SUM (CASE WHEN (DATE_PART('day', NOW()) > DATE_PART('day', finish_datetime_plan::date)) AND finish_datetime_fact IS NULL THEN 1  END)) unfinished
+
+FROM tm_task tt
+
+LEFT JOIN gov74_task_kind gtk ON gtk.id = tt.task_kind
+LEFT JOIN sec_user su ON su.id = tt.executor_id 
+JOIN df_employee de ON de.user_id = su.id 
+JOIN df_position dp ON dp.id = de.position_id
+WHERE dp.name LIKE '%Губернатора%'
+and create_date >= '2022-01-01' AND create_date <= '2022-05-30'
+GROUP BY su.name, gtk.name, tt.finish_datetime_plan, tt.finish_datetime_fact
+
+ORDER BY su.name, coefficient asc) temp
+GROUP BY name, coefficient
+ORDER BY name) AS kidf
+
+GROUP BY kidf.name
+
+`;
+
+const solutionsCoefQuery = `
+SELECT temp.name, sum(temp.quantity), temp.coefficient, SUM(temp.good) as good, SUM(temp.good) as good, jsonb_agg(temp."bad/daysoverdue") filter (where temp."bad/daysoverdue" is not null) as "bad/daysoverdue", sum(temp.unfinished) AS unfinished
+FROM
+(SELECT
+	su.name,
+	COUNT(tt.card_id) quantity,
+	
+	(CASE
+		WHEN gtk.name = 'Главный федеральный инспектор в Челябинской области' THEN 1
+		WHEN gtk.name = 'Запрос Депутата Государственной Думы' THEN 1
+		WHEN gtk.name = 'Министерства и др.' THEN 1
+		WHEN gtk.name = 'Полномочный представитель Президента РФ в УрФО' THEN 2
+		WHEN gtk.name = 'Аппарат Правительства РФ' THEN 3
+		WHEN gtk.name = 'Администрация Президента РФ' THEN 3
+		WHEN gtk.name = 'Поручения Президента РФ' THEN 3
+    WHEN gtk.name = 'Поручения Губернатора' THEN 1
+		WHEN gtk.name = 'Председатель Правительства РФ' THEN 3
+		WHEN gtk.name = 'Проверки УрФО' THEN 1
+		WHEN gtk.name = 'Протоколы УрФО' THEN 1
+		WHEN gtk.name = 'Указы Президента РФ' THEN 3
+		WHEN gtk.name = 'Поручения Губернатора с коэфф. 3' THEN 3
+		WHEN gtk.name IS NULL THEN 1
+	END) coefficient,
+
+(SUM (CASE WHEN (CAST (DATE_PART('day', COALESCE(finish_datetime_fact, NOW())) - DATE_PART('day', finish_datetime_plan::DATE)AS INT)) < 0 THEN 1 END)) good,
+
+(CASE WHEN (SUM (CASE WHEN (CAST (DATE_PART('day', finish_datetime_fact) - DATE_PART('day', finish_datetime_plan::DATE)AS INT)) > 0 THEN 1 END)) IS NOT NULL THEN 
+CONCAT_WS('/',(SUM (CASE WHEN (CAST (DATE_PART('day', finish_datetime_fact) - DATE_PART('day', finish_datetime_plan::DATE)AS INT)) > 0 THEN 1 END)), 
+(CAST (DATE_PART('day', COALESCE(finish_datetime_fact, NOW())::date) - DATE_PART('day', finish_datetime_plan::date)  as SMALLINT))) END) as "bad/daysoverdue",
+
+(SUM (CASE WHEN (DATE_PART('day', NOW()) > DATE_PART('day', finish_datetime_plan::date)) AND finish_datetime_fact IS NULL THEN 1  END)) unfinished
+
+FROM tm_task tt
+
+LEFT JOIN gov74_task_kind gtk ON gtk.id = tt.task_kind
+LEFT JOIN sec_user su ON su.id = tt.executor_id 
+JOIN df_employee de ON de.user_id = su.id 
+JOIN df_position dp ON dp.id = de.position_id
+WHERE dp.name LIKE '%Губернатора%'
+and create_date >= '2022-01-01' AND create_date <= '2022-05-30'
+GROUP BY su.name, gtk.name, tt.finish_datetime_plan, tt.finish_datetime_fact
 
 
-
-
+ORDER BY su.name, coefficient asc) temp
+GROUP BY name, coefficient
+ORDER BY name
+`;
 
 const outEcpQuery = `
 SELECT DISTINCT o.name AS org_name,
@@ -107,7 +222,7 @@ outbox,
 ecpoutbox
 
 ORDER BY outbox DESC
-` 
+`;
 
 const orgTypeCount = `
 SELECT dfo.organization_type_id,
@@ -125,7 +240,7 @@ COUNT(*)
 FROM df_organization dfo 
 
 GROUP BY dfo.organization_type_id
-`
+`;
 
 const orgType = `
 SELECT dfo.name,
@@ -139,4 +254,4 @@ END
 FROM df_organization dfo 
 
 GROUP BY dfo.name, dfo.organization_type_id
-`
+`;
