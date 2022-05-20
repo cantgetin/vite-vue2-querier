@@ -1,6 +1,7 @@
 const { Pool } = require("pg");
-const connectionString =
-  "postgresql://postgres:postgres@10.0.23.118:5432/tezis";
+// const connectionString =
+//   "postgresql://postgres:postgres@10.0.23.118:5432/tezis";
+const connectionString = 'postgres://postgres:1488q1337@localhost:5432/testdb';
 var pool = new Pool({ connectionString });
 
 const outEcp = (request, response) => {
@@ -33,7 +34,10 @@ const orgTypes = (request, response) => {
 };
 
 const solutionsCoef = (request, response) => {
-  pool.query(solutionsCoefQuery, (error, results) => {
+  let from = request.query.dateValueFrom;
+  let to = request.query.dateValueTo;
+
+  pool.query(solutionsCoefQuery,[from,to], (error, results) => {
     if (error) {
       throw error;
     }
@@ -42,7 +46,10 @@ const solutionsCoef = (request, response) => {
 };
 
 const solutionsFinalCoef = (request, response) => {
-  pool.query(finalKid, (error, results) => {
+  let from = request.query.dateValueFrom;
+  let to = request.query.dateValueTo;
+
+  pool.query(finalKid,[from,to], (error, results) => {
     if (error) {
       throw error;
     }
@@ -100,8 +107,8 @@ LEFT JOIN gov74_task_kind gtk ON gtk.id = tt.task_kind
 LEFT JOIN sec_user su ON su.id = tt.executor_id 
 JOIN df_employee de ON de.user_id = su.id 
 JOIN df_position dp ON dp.id = de.position_id
-WHERE dp.name LIKE '%Губернатора%'
-and create_date >= '2022-01-01' AND create_date <= '2022-05-30'
+Where start_datetime_fact >= $1 and
+start_datetime_fact <= $2 
 GROUP BY su.name, gtk.name, tt.finish_datetime_plan, tt.finish_datetime_fact
 
 ORDER BY su.name, coefficient asc) temp
@@ -150,10 +157,9 @@ LEFT JOIN gov74_task_kind gtk ON gtk.id = tt.task_kind
 LEFT JOIN sec_user su ON su.id = tt.executor_id 
 JOIN df_employee de ON de.user_id = su.id 
 JOIN df_position dp ON dp.id = de.position_id
-WHERE dp.name LIKE '%Губернатора%'
-and create_date >= '2022-01-01' AND create_date <= '2022-05-30'
+Where start_datetime_fact >= $1 and
+start_datetime_fact <= $2
 GROUP BY su.name, gtk.name, tt.finish_datetime_plan, tt.finish_datetime_fact
-
 
 ORDER BY su.name, coefficient asc) temp
 GROUP BY name, coefficient

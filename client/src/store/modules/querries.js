@@ -55,8 +55,8 @@ const actions = {
     commit("resetState");
   },
 
-  async getSolutionsCoef({ commit }) {
-    const response = await querriesApi.getSolutionsCoef();
+  async getSolutionsCoef({ commit }, from, to) {
+    const response = await querriesApi.getSolutionsCoef(from, to);
 
     response.data.forEach((element) => {
       element.KID = calculateKIDforCertainCoef(
@@ -109,9 +109,9 @@ const actions = {
     console.log(response.data);
   },
 
-  async getFinalSolutions({ commit, dispatch }) {
-    const responseFinal = await querriesApi.getSolutionsFinalCoef();
-    const response = await querriesApi.getSolutionsCoef();
+  async getFinalSolutions({ commit, dispatch }, from, to) {
+    const responseFinal = await querriesApi.getSolutionsFinalCoef(from,to);
+    const response = await querriesApi.getSolutionsCoef(from,to);
 
     response.data.forEach((element) => {
       element.KID = calculateKIDforCertainCoef(

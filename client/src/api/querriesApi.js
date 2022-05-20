@@ -10,10 +10,10 @@ export default {
   getOrgTypes() {
     return api().get(`api/orgTypes`);
   },
-  getSolutionsCoef() {
-    return api().get(`api/solutionsCoef`);
+  getSolutionsCoef(params) {
+    return api().get(`api/solutionsCoef`, { params });
   },
-  getSolutionsFinalCoef() {
-    return api().get(`api/solutionsFinalCoef`);
+  getSolutionsFinalCoef(params) {
+    return api().get(`api/solutionsFinalCoef`, { params });
   },
 };
