@@ -1,8 +1,8 @@
 <template>
-  <div>
+  <div class="base">
     <div class="divHead">
-    <b-button class="btn-back" variant="dark" @click="$router.push('/')">Назад</b-button>
-    <h2>Отчет по количеству организаций в типе</h2>
+      <h2>Отчет по количеству организаций в типе</h2>
+      <hr />
     </div>
     <b-table
       class="table tb shadow p-3 mb-5 bg-white rounded"
@@ -12,7 +12,6 @@
       label-sort-desc=""
       :sort-by="sortBy"
       :sort-desc="sortDesc"
-
       :items="orgTypeNumber"
       :fields="tableFields"
     >
@@ -23,38 +22,35 @@
 <script>
 import { mapGetters, mapActions } from "vuex";
 export default {
-    mounted() {
-      this.getOrgTypeNumber()
+  mounted() {
+    this.getOrgTypeNumber();
+  },
+  computed: {
+    ...mapGetters(["orgTypeNumber"]),
+  },
+
+  methods: {
+    ...mapActions(["getOrgTypeNumber"]),
+    created() {
+      getOrgTypeNumber();
     },
-    computed: {
-        ...mapGetters(["orgTypeNumber"]),
-      },
-          
-      methods: {
-        ...mapActions(["getOrgTypeNumber"]),
-      created() {
-        getOrgTypeNumber()
-      },
-      },
+  },
   data() {
     return {
-      sortBy: 'count',
+      sortBy: "count",
       sortDesc: true,
       tableFields: [
-      
         {
           key: "case",
           label: "Тип организации",
-         
         },
-          {
+        {
           key: "count",
           label: "Количество",
           class: "tableNumbers",
           sortable: true,
         },
       ],
-
     };
   },
 };
@@ -64,14 +60,14 @@ export default {
 .tb {
   text-align: start;
   vertical-align: middle;
-  width: 60vw;
+  min-width: 80.5vw;
+  /* width: 100%; */
   margin: auto;
 }
-.divHead{
-  margin-top: 1vh;
+.divHead {
+  /* margin-top: 1vh; */
   margin-bottom: 1vh;
   display: flex;
   gap: 2vw;
-  margin-left: 26vw;
 }
 </style>

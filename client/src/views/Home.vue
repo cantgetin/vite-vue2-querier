@@ -1,55 +1,50 @@
 <template>
-  <div>
-    <div class="heading">
-      <h2>Выберите отчет</h2>
-    </div>
-    <div class="home shadow p-3 mb-3 bg-white rounded">
-      <b-button variant="dark" class="btns" @click="$router.push('outEcpView')"
-        >Отчет по исходящим документам</b-button
-      >
-      <b-button variant="dark" class="btns" @click="$router.push('orgTypes')"
-        >Отчет по типам организаций</b-button
-      >
-      <b-button
-        variant="dark"
-        class="btns"
-        @click="$router.push('orgTypeNumber')"
-        >Отчет по количеству организаций в типах</b-button
-      >
-    </div>
+  <div class="homepage">
+    <report-select />
+    <report-show>
+      <org-types v-if="chosenReport == 'orgTypes'" />
+      <org-type-number v-if="chosenReport == 'orgTypeNumber'" />
+      <out-ecp-view v-if="chosenReport == 'outEcp'" />
+      <kid-coeff v-if="chosenReport == 'kidCoeff'" />
+      <kid-final v-if="chosenReport == 'kidFinal'" />
+    </report-show>
   </div>
 </template>
 
 <script>
+import { mapGetters } from "vuex";
+import ReportSelect from "../components/ReportSelect.vue";
+import ReportShow from "../components/ReportShow.vue";
+import outEcpView from "../components/outEcpView.vue";
+import orgTypeNumber from "../components/orgTypeNumber.vue";
+import orgTypes from "../components/orgTypes.vue";
+import kidCoeff from "../components/KidCoeff.vue";
+import kidFinal from "../components/KidFinal.vue";
 export default {
   name: "Home",
+  components: {
+    ReportSelect,
+    ReportShow,
+    orgTypeNumber,
+    orgTypes,
+    outEcpView,
+    kidCoeff,
+    kidFinal,
+  },
+  computed: {
+    ...mapGetters(["chosenReport"]),
+  },
 };
 </script>
 
 <style>
-html{
-  background-color: #F8F8F8;
+html {
+  background-color: #f8f8f8;
 }
-h2{
-  /* color: white; */
-}
-.home {
-  min-width: 235px;
-  width: 17vw;
-  margin-left: 41vw;
-  margin-top: 5vh;
+
+.homepage {
   display: flex;
-  flex-direction: column;
-  gap: 1vw;
-}
-.heading {
-  
-  display: flex;
-  margin-left: 42vw;
-  margin-top: 20vh;
-}
-.btns {
-  min-width: 204px;
-  width: 15vw;
+  flex-direction: row;
+  justify-content: space-between;
 }
 </style>

@@ -4,6 +4,6 @@ COPY package*.json ./
 RUN npm config set strict-ssl false
 RUN npm install
 RUN npm config set strict-ssl true
-# COPY . .
+COPY . .
 EXPOSE 3080
 CMD ["npm", "start"]
